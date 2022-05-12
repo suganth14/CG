@@ -1,7 +1,4 @@
-//sutherland
-
 #include <windows.h>
-
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
@@ -13,22 +10,32 @@
 
 using namespace std;
 
-vector< pair<float,float> > p;
-vector< pair<float,float> > l;
-bool flag = false;
+vector< pair<int,int> > p;
+vector< pair<int,int> > l;
 
 const int INSIDE = 0;
-const int LEFT = 1;
-const int RIGHT = 2;
-const int BOTTOM = 4;
 const int TOP = 8;
+const int BOTTOM = 4;
+const int RIGHT = 2;
+const int LEFT = 1;
+boolean flag = false;
+
+
+void init(){
+    glClearColor(0,0,0,0);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0,640,0,480);
+}
 
 static void display(void)
 {
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glFlush();
 }
 
-void drawSquare(){
+void drawWindow()
+{
     glClearColor(0,0,0,0);
     glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
     glBegin(GL_POLYGON);
@@ -37,6 +44,15 @@ void drawSquare(){
         glVertex2f(p[1].first,p[0].second);
         glVertex2f(p[1].first,p[1].second);
         glVertex2f(p[0].first,p[1].second);
+    glEnd();
+    glFlush();
+}
+
+void drawLine()
+{
+    glBegin(GL_LINES);
+        glVertex2f(l[0].first,l[0].second);
+        glVertex2f(l[1].first,l[1].second);
     glEnd();
     glFlush();
 }
@@ -56,17 +72,9 @@ int assignBit(float x,float y)
     return code;
 }
 
-void plotLine()
-{
-    glBegin(GL_LINES);
-        glVertex2f(l[0].first,l[0].second);
-        glVertex2f(l[1].first,l[1].second);
-    glEnd();
-    glFlush();
-}
-
 void clip()
 {
+
     float x1 = l[0].first;
     float y1 = l[0].second;
     float x2 = l[1].first;
@@ -74,13 +82,14 @@ void clip()
 
     int val1 = assignBit(x1,y1);
     int val2 = assignBit(x2,y2);
+    int t1;
 
-    while(true){
-
+    while(true)
+    {
         if(val1==0 && val2==0)
         {
-            cout<<"Completely inside \n";
-            plotLine();
+            cout<<"Completely inside";
+            drawLine();
             return;
         }
 
@@ -90,72 +99,90 @@ void clip()
             return;
         }
 
-        else{
-            int val_out;
-            float x, y;
+        else
+        {
+            int valOut,x,y;
 
-            if (val1 != 0)
-                val_out = val1;
+            if(val1 != 0)
+                valOut = val1;
             else
-                val_out = val2;
+                valOut = val2;
 
-            if(val_out & TOP){
-                x = x1 + (x2 - x1) * (p[1].second - y1) / (y2 - y1);
-                y = p[1].second;
+            if(valOut & TOP){
+                t1 = x1 + (x2 - x1) * (p[1].second - y1) / (y2 - y1);
+                if (t1 > p[0].first && t1 < p[1].first){
+                    x = t1;
+                    y = p[1].second;
+                }
             }
-            if(val_out & LEFT){
-                y = y1 + (y2 - y1) * (p[0].first - x1) / (x2 - x1);
-                x = p[0].first;
+            if(valOut & LEFT){
+                t1 = y1 + (y2 - y1) * (p[0].first - x1) / (x2 - x1);
+                if (t1 > p[0].second && t1 < p[1].second){
+                    y = t1;
+                    x = p[0].first;
+                }
+
             }
-            if(val_out & RIGHT){
-                y = y1 + (y2 - y1) * (p[1].first - x1) / (x2 - x1);
-                x = p[1].first;
+            if(valOut & RIGHT){
+                t1 = y1 + (y2 - y1) * (p[1].first - x1) / (x2 - x1);
+                if (t1 > p[0].second && t1 < p[1].second){
+                    y = t1;
+                    x = p[1].first;
+                }
+
             }
-            if(val_out & BOTTOM){
-                x = x1 + (x2 - x1) * (p[0].second - y1) / (y2 - y1);
-                y = p[0].second;
+            if(valOut & BOTTOM){
+                t1 = x1 + (x2 - x1) * (p[0].second - y1) / (y2 - y1);
+                if (t1 > p[0].first && t1 < p[1].first){
+                    x = t1;
+                    y = p[0].second;
+                }
             }
 
-            if (val_out == val1) {
+
+            if(valOut ==  val1 ){
                 l[0].first = x;
                 l[0].second = y;
-                cout<<"assigned l[0] \n";
-                val1 = 0;
+                val1=0;
             }
-            else {
+            else{
                 l[1].first = x;
                 l[1].second = y;
-                cout<<"assigned l[1] \n";
-                val2 = 0;
-                plotLine();
+                val2=0;
+                drawLine();
                 return;
             }
         }
     }
 }
+void handleMouse(int button, int status, int x, int y)
+{
+    if (button == GLUT_LEFT && status == GLUT_DOWN)
+    {
+        glColor3f(1,1,1);
+        pair<int,int> po(x,480-y);
+        glBegin(GL_POINTS);
+            glVertex2d(po.first,po.second);
+        glEnd();
+        glFlush();
 
-void mouseHandling(int button,int status,int x,int y){
-    if(button==GLUT_LEFT_BUTTON && status==GLUT_DOWN){
-        pair<int,int> pr(x,480-y);
-        if(flag==false)
-            p.push_back(pr);
+        if(flag == false)
+            p.push_back(po);
         else
-            l.push_back(pr);
-    }else if(button==GLUT_RIGHT_BUTTON && status==GLUT_DOWN && flag==false){
-        drawSquare();
-        flag = true;
+            l.push_back(po);
     }
-    else if(button==GLUT_RIGHT_BUTTON && status==GLUT_DOWN && flag==true){
+
+    else if(button == GLUT_RIGHT_BUTTON && status == GLUT_DOWN && flag == false)
+    {
+        flag = true;
+        drawWindow();
+    }
+
+    else if(button == GLUT_RIGHT_BUTTON && status == GLUT_DOWN && flag == true)
+    {
         clip();
         l.clear();
     }
-}
-
-void init(){
-    glClearColor(0,0,0,0);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0,640,0,480);
 }
 
 int main(int argc, char *argv[])
@@ -163,14 +190,12 @@ int main(int argc, char *argv[])
     glutInit(&argc, argv);
     glutInitWindowSize(640,480);
     glutInitWindowPosition(10,10);
-    glutInitDisplayMode(GLUT_RGB);
+    glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
 
     glutCreateWindow("GLUT Shapes");
-
     init();
-
     glutDisplayFunc(display);
-    glutMouseFunc(mouseHandling);
+    glutMouseFunc(handleMouse);
     glutMainLoop();
 
     return EXIT_SUCCESS;
