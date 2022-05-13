@@ -20,10 +20,6 @@ static void display(void)
     glFlush();
 }
 
-bool xCompare(pair<float,float> p1,pair<float,float> p2){
-    return (p1.first<p2.first);
-}
-
 void init(){
     glClearColor(0,0,0,0);
     glMatrixMode(GL_PROJECTION);
@@ -81,7 +77,7 @@ void orderList(){
                 }
                 else{
                     cout<<"ELSE\n";
-                    if(i-1>=0 && ((polygon[i-1].second>=p.second && p.second<=polygon[i+1].second) ||
+                    if(i-1>=0 && i!=polygon.size()-1 && ((polygon[i-1].second>=p.second && p.second<=polygon[i+1].second) ||
                                   (polygon[i-1].second<=p.second && p.second>=polygon[i+1].second)) ){
                         cout<<"ELSE IF : "<<i<<"\n";
                         intersections.push_back(p);
@@ -89,7 +85,7 @@ void orderList(){
                 }
             }
         }
-        sort(intersections.begin(),intersections.end(),xCompare);
+        sort(intersections.begin(),intersections.end());
         int loopval = intersections.size()-1;
         cout<<"Scan Line : "<<scanLine;
         cout<<"\nIntersections Size : "<<intersections.size()<<"\n\n";
