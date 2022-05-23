@@ -10,6 +10,7 @@ ortho1.cpp
 ortho2.cpp
 ser.py
 th.py
+bz.cpp
 
 --------------------------
 
