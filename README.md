@@ -11,6 +11,7 @@ ortho2.cpp
 ser.py
 th.py
 bz.cpp
+per.cpp
 
 --------------------------
 
